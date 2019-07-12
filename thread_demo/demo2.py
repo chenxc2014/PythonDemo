@@ -8,6 +8,11 @@ import time
 
 '''
     多个线程修改同个共享数据时，需要通过加锁来处理并发
+    通过threading.Lock()或是threading.RLock()来处理
+    这两个对象下都会有acquire()和release()这两个方法，前者用于申请一个锁，后缀用于释放对应的锁
+    
+    Lock下，同一线程中不能多次acquire（会造成死锁）,acquire与release必须成对出现，即acquire后必须出现release
+    RLock下，同一线程中允许出现多次acquire，即acquire后可以再出现acquire(中间没有release)，但acquired的次数与release的次数必须相等。
 '''
 
 
@@ -22,8 +27,10 @@ class MyThread(threading.Thread):
         print("开启线程： " + self.name)
         # 获取锁，用于线程同步
         threadLock.acquire()
+        threadLock.acquire()
         print_time(self.name, 1, self.counter)
         # 释放锁，开启下一个线程
+        threadLock.release()
         threadLock.release()
 
 
