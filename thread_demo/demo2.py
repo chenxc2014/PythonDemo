@@ -1,16 +1,13 @@
 # -*- coding:utf-8 -*-
 # Author: chenxc
-# Date: 2019/7/11 17:53
-# Func: 
+# Date: 2019/7/12 10:05
+# Func:
 
 import threading
 import time
 
-exitFlag = 0
-
 '''
-通过扩展类（继承于Thread）来实现多线程
-必须实现run方法，这样外面在调用线程的start时才会执行对应run中的逻辑
+    多个线程修改同个共享数据时，需要通过加锁来处理并发
 '''
 
 
@@ -22,27 +19,38 @@ class MyThread(threading.Thread):
         self.counter = counter
 
     def run(self):
-        print("开始线程：" + self.name)
+        print("开启线程： " + self.name)
+        # 获取锁，用于线程同步
+        threadLock.acquire()
         print_time(self.name, 1, self.counter)
-        print("退出线程：" + self.name)
+        # 释放锁，开启下一个线程
+        threadLock.release()
 
 
 def print_time(thread_name, delay, counter):
     while counter:
-        if exitFlag:
-            thread_name.exit()
         time.sleep(delay)
         print("%s: %s" % (thread_name, time.ctime(time.time())))
         counter -= 1
 
 
+# threadLock = threading.Lock()
+threadLock = threading.RLock()
+threads = []
+
 # 创建新线程
 thread1 = MyThread(1, "Thread-1", 3)
-thread2 = MyThread(2, "Thread-2", 4)
+thread2 = MyThread(2, "Thread-2", 3)
 
 # 开启新线程
 thread1.start()
 thread2.start()
-# thread1.join()
-# thread2.join()
+
+# 添加线程到线程列表
+threads.append(thread1)
+threads.append(thread2)
+
+# 等待所有线程完成
+for t in threads:
+    t.join()
 print("退出主线程")
